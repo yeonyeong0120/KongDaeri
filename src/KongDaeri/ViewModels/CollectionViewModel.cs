@@ -67,21 +67,40 @@ public partial class CollectionViewModel : ObservableObject
         if (vm is not null) Items.Remove(vm);
     });
 
+    /// <summary>번역 버튼 라벨(설정 기본 언어 반영). 예: "번역(English)".</summary>
+    public string TranslateButtonText => $"번역({CurrentLanguage})";
+
+    private static string CurrentLanguage
+        => string.IsNullOrWhiteSpace(AppSettings.Load().TranslateLanguage) ? "English" : AppSettings.Load().TranslateLanguage!;
+
+    /// <summary>설정 저장 후 호출 — 번역 버튼 라벨 등 설정 기반 표시를 갱신.</summary>
+    public void RefreshSettings() => OnPropertyChanged(nameof(TranslateButtonText));
+
     [RelayCommand]
-    private async Task ProcessAiAsync()
+    private Task OrganizeAiAsync() => RunAiAsync(AiTask.Organize, null, "정리");
+
+    [RelayCommand]
+    private Task TranslateAiAsync()
+    {
+        var lang = CurrentLanguage;
+        return RunAiAsync(AiTask.Translate, lang, $"{lang} 번역");
+    }
+
+    private async Task RunAiAsync(AiTask task, string? language, string label)
     {
         var sel = SelectedItem;
         if (sel is null) return;
 
         if (!_service.AiEnabled)
         {
-            MessageBox.Show("AI가 비활성화됨(Gemini 키 확인). settings.json 을 점검하세요.",
-                "AI 정리", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("AI가 비활성화됨(Gemini 키 확인). 설정에서 키를 확인하세요.",
+                "AI 처리", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        // 성공/실패 모두 서비스가 상태·배지·말풍선을 갱신한다(예외는 내부 처리).
-        await _service.ProcessWithAiAsync(sel.Model);
+        // 성공/실패 모두 서비스가 상태·배지·말풍선을 갱신(예외는 내부 처리).
+        await _service.ProcessWithAiAsync(sel.Model, task, language);
+        sel.ProcessedAs = label;   // 처리 방식 표시
     }
 
     [RelayCommand]

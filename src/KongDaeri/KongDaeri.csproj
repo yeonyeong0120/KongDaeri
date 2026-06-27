@@ -16,6 +16,7 @@
     <!-- 표정 -->
     <Resource Include="Assets\kongdr_blink.png" />
     <Resource Include="Assets\kongdr_sad.png" />
+    <Resource Include="Assets\kongdr_happy.png" />
     <!-- 창/트레이 아이콘으로 런타임 로드되도록 리소스로 포함 -->
     <Resource Include="Assets\kongdr_glasses_icon.ico" />
     <!-- Pretendard 폰트 -->

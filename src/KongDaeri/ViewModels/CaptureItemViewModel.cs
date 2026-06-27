@@ -14,6 +14,9 @@ public partial class CaptureItemViewModel : ObservableObject
 
     public CaptureItemViewModel(CaptureItem model) => Model = model;
 
+    /// <summary>마지막 처리 방식 표시(예: "정리", "English 번역"). 세션 한정(미영속).</summary>
+    [ObservableProperty] private string? processedAs;
+
     public Guid Id => Model.Id;
 
     public string Title =>

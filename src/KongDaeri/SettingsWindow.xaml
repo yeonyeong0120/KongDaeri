@@ -56,6 +56,12 @@
         <TextBox Height="28" Margin="0,4,0,0" VerticalContentAlignment="Center"
                  Text="{Binding SnipHotkeyInput, UpdateSourceTrigger=PropertyChanged}"/>
 
+        <!-- 번역 기본 언어 -->
+        <TextBlock Text="번역 기본 언어" FontWeight="SemiBold" Margin="0,14,0,0"/>
+        <ComboBox Height="28" Margin="0,4,0,0" VerticalContentAlignment="Center"
+                  ItemsSource="{Binding Languages}"
+                  SelectedItem="{Binding TranslateLanguageInput, Mode=TwoWay}"/>
+
         <!-- 안내 -->
         <TextBlock Text="키/토큰을 비워두고 저장하면 기존 값이 유지됩니다."
                    FontSize="11" Foreground="#FF999999" TextWrapping="Wrap" Margin="0,14,0,0"/>

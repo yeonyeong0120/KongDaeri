@@ -12,6 +12,10 @@ public partial class SettingsViewModel : ObservableObject
 {
     [ObservableProperty] private string notionPageIdInput = "";
     [ObservableProperty] private string snipHotkeyInput = "";
+    [ObservableProperty] private string translateLanguageInput = "English";
+
+    /// <summary>번역 언어 선택지.</summary>
+    public string[] Languages { get; } = { "English", "Japanese", "Chinese", "Korean" };
 
     // 시크릿은 평문을 뿌리지 않고 "설정됨/없음"만 표시.
     [ObservableProperty] private bool geminiKeySet;
@@ -34,6 +38,7 @@ public partial class SettingsViewModel : ObservableObject
         NotionTokenSet = !string.IsNullOrWhiteSpace(s.NotionToken);
         NotionPageIdInput = s.NotionParentPageId ?? "";
         SnipHotkeyInput = string.IsNullOrWhiteSpace(s.SnipHotkey) ? "Ctrl+Alt+S" : s.SnipHotkey!;
+        TranslateLanguageInput = string.IsNullOrWhiteSpace(s.TranslateLanguage) ? "English" : s.TranslateLanguage!;
     }
 
     /// <summary>
@@ -56,6 +61,7 @@ public partial class SettingsViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(geminiInput)) s.GeminiApiKey = geminiInput.Trim();
         if (!string.IsNullOrWhiteSpace(notionTokenInput)) s.NotionToken = notionTokenInput.Trim();
         if (!string.IsNullOrWhiteSpace(NotionPageIdInput)) s.NotionParentPageId = NotionPageIdInput.Trim();
+        if (!string.IsNullOrWhiteSpace(TranslateLanguageInput)) s.TranslateLanguage = TranslateLanguageInput;
 
         s.Save();
         return (true, null);

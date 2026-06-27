@@ -68,23 +68,24 @@ public sealed class CaptureService
         StatusMessage?.Invoke(this, "주워 담았어요");
     }
 
-    /// <summary>AI 정리: Processing → (성공)Processed / (실패)Failed.</summary>
-    public async Task ProcessWithAiAsync(CaptureItem item)
+    /// <summary>AI 처리(정리/번역): Processing → (성공)Processed / (실패)Failed.</summary>
+    public async Task ProcessWithAiAsync(CaptureItem item, AiTask task = AiTask.Organize, string? language = null)
     {
         if (_ai is null) return;
+        bool translate = task == AiTask.Translate;
 
         try
         {
             item.Status = CaptureStatus.Processing;
             await _storage.UpdateAsync(item);
             ItemUpdated?.Invoke(this, item);
-            StatusMessage?.Invoke(this, "정리 중…");
+            StatusMessage?.Invoke(this, translate ? "번역 중…" : "정리 중…");
 
-            await _ai.ProcessAsync(item);
+            await _ai.ProcessAsync(item, task, language);
             await _storage.UpdateAsync(item);
             LogAiResult(item);
             ItemUpdated?.Invoke(this, item);
-            StatusMessage?.Invoke(this, "정리 끝!");
+            StatusMessage?.Invoke(this, translate ? "번역 끝!" : "정리 끝!");
         }
         catch (Exception ex)
         {

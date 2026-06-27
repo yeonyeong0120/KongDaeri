@@ -26,12 +26,14 @@ public sealed class GeminiProcessor : IAiProcessor
         _http = http ?? new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
     }
 
-    public async Task<CaptureItem> ProcessAsync(CaptureItem item)
+    public async Task<CaptureItem> ProcessAsync(CaptureItem item, AiTask task = AiTask.Organize, string? targetLanguage = null)
     {
-        // 입력 분기: 이미지(스니핑) 항목이면 비전, 아니면 텍스트.
+        var lang = string.IsNullOrWhiteSpace(targetLanguage) ? "English" : targetLanguage!;
+
+        // 입력 분기: 이미지(스니핑) 항목이면 비전, 아니면 텍스트. (정리/번역 공통)
         object[] parts = !string.IsNullOrEmpty(item.ImagePath)
-            ? BuildImageParts(item.ImagePath!)
-            : BuildTextParts(item.RawText ?? string.Empty);
+            ? BuildImageParts(item.ImagePath!, task, lang)
+            : BuildTextParts(item.RawText ?? string.Empty, task, lang);
 
         var requestBody = new
         {
@@ -75,29 +77,45 @@ public sealed class GeminiProcessor : IAiProcessor
     }
 
     // 텍스트 항목용 파트.
-    private static object[] BuildTextParts(string input)
+    private static object[] BuildTextParts(string input, AiTask task, string lang)
     {
-        var prompt = $$"""
-            너는 사용자가 수집한 정보를 노션에 아카이빙하기 좋게 정리하는 비서야.
-            아래 [수집 내용]을 읽고 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
+        var prompt = task == AiTask.Translate
+            ? $$"""
+                너는 수집한 정보를 번역해 노션에 아카이빙하는 비서야.
+                아래 [수집 내용]을 {{lang}} 로 자연스럽게 번역한 뒤, 다음을 JSON 으로만 응답해. 다른 말은 붙이지 마.
 
-            - title: 내용을 한눈에 알 수 있는 짧은 한국어 제목 (한 줄)
-            - tags: 주제를 나타내는 태그 3~5개 (한국어, 배열)
-            - markdown: 노션 페이지 본문으로 쓸 마크다운. 반드시 맨 위 첫 줄에 "# 제목"(h1)을
-              포함하고, 그 아래에 요점을 정리. 원문이 길면 요약하고, 표/목록이 어울리면 사용해.
+                - title: 번역 결과를 한눈에 알 수 있는 짧은 제목({{lang}})
+                - tags: 주제 태그 3~5개({{lang}}, 배열)
+                - markdown: 노션 본문 마크다운. 맨 위 첫 줄에 "# 제목"(h1, {{lang}}) 포함. 본문은
+                  {{lang}} 로 번역된 내용. 표/목록이 있으면 형식을 유지해 번역.
 
-            응답 JSON 스키마:
-            {"title": "string", "tags": ["string"], "markdown": "string"}
+                응답 JSON 스키마:
+                {"title": "string", "tags": ["string"], "markdown": "string"}
 
-            [수집 내용]
-            {{input}}
-            """;
+                [수집 내용]
+                {{input}}
+                """
+            : $$"""
+                너는 사용자가 수집한 정보를 노션에 아카이빙하기 좋게 정리하는 비서야.
+                아래 [수집 내용]을 읽고 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
+
+                - title: 내용을 한눈에 알 수 있는 짧은 한국어 제목 (한 줄)
+                - tags: 주제를 나타내는 태그 3~5개 (한국어, 배열)
+                - markdown: 노션 페이지 본문으로 쓸 마크다운. 반드시 맨 위 첫 줄에 "# 제목"(h1)을
+                  포함하고, 그 아래에 요점을 정리. 원문이 길면 요약하고, 표/목록이 어울리면 사용해.
+
+                응답 JSON 스키마:
+                {"title": "string", "tags": ["string"], "markdown": "string"}
+
+                [수집 내용]
+                {{input}}
+                """;
 
         return new object[] { new { text = prompt } };
     }
 
     // 스니핑 이미지용 파트: 프롬프트 + base64 inline_data(image/png).
-    private static object[] BuildImageParts(string imagePath)
+    private static object[] BuildImageParts(string imagePath, AiTask task, string lang)
     {
         if (!File.Exists(imagePath))
         {
@@ -107,18 +125,31 @@ public sealed class GeminiProcessor : IAiProcessor
         var bytes = File.ReadAllBytes(imagePath);
         var base64 = Convert.ToBase64String(bytes);
 
-        var prompt = """
-            너는 사용자가 캡처한 화면 이미지를 노션에 아카이빙하기 좋게 정리하는 비서야.
-            첨부된 이미지에서 텍스트·표·핵심 정보를 추출해 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
+        var prompt = task == AiTask.Translate
+            ? $$"""
+                너는 캡처 이미지를 번역해 노션에 아카이빙하는 비서야.
+                첨부 이미지에서 텍스트·표·핵심 정보를 추출한 뒤 {{lang}} 로 번역해 다음을 JSON 으로만 응답해. 다른 말은 붙이지 마.
 
-            - title: 이미지 내용을 한눈에 알 수 있는 짧은 한국어 제목 (한 줄)
-            - tags: 주제를 나타내는 태그 3~5개 (한국어, 배열)
-            - markdown: 노션 페이지 본문으로 쓸 마크다운. 반드시 맨 위 첫 줄에 "# 제목"(h1)을
-              포함하고, 이미지의 텍스트는 그대로 옮기되 표가 있으면 마크다운 표로 재현하고 핵심은 요약해.
+                - title: 번역 결과의 짧은 제목({{lang}})
+                - tags: 주제 태그 3~5개({{lang}}, 배열)
+                - markdown: 노션 본문 마크다운. 맨 위 첫 줄에 "# 제목"(h1, {{lang}}) 포함. 표가 있으면
+                  마크다운 표로 재현하되 내용은 {{lang}} 로 번역.
 
-            응답 JSON 스키마:
-            {"title": "string", "tags": ["string"], "markdown": "string"}
-            """;
+                응답 JSON 스키마:
+                {"title": "string", "tags": ["string"], "markdown": "string"}
+                """
+            : """
+                너는 사용자가 캡처한 화면 이미지를 노션에 아카이빙하기 좋게 정리하는 비서야.
+                첨부된 이미지에서 텍스트·표·핵심 정보를 추출해 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
+
+                - title: 이미지 내용을 한눈에 알 수 있는 짧은 한국어 제목 (한 줄)
+                - tags: 주제를 나타내는 태그 3~5개 (한국어, 배열)
+                - markdown: 노션 페이지 본문으로 쓸 마크다운. 반드시 맨 위 첫 줄에 "# 제목"(h1)을
+                  포함하고, 이미지의 텍스트는 그대로 옮기되 표가 있으면 마크다운 표로 재현하고 핵심은 요약해.
+
+                응답 JSON 스키마:
+                {"title": "string", "tags": ["string"], "markdown": "string"}
+                """;
 
         return new object[]
         {

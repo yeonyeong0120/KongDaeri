@@ -183,6 +183,9 @@ public partial class App : System.Windows.Application
             }
         }
 
+        // 설정 기반 UI 표시 갱신(번역 버튼 라벨 등).
+        _collectionViewModel?.RefreshSettings();
+
         AppLog.Line("[설정] 다시 로드됨");
     }
 
@@ -306,7 +309,7 @@ public partial class App : System.Windows.Application
         {
             w.ShowBubble(message);
             if (message.Contains("실패")) w.ShowSad();
-            else if (message.Contains("정리 끝")) w.ShowHappy();
+            else if (message.Contains("끝!") || message.Contains("올렸어요")) w.ShowHappy();
         });
     }
 

@@ -124,8 +124,8 @@ public partial class MainWindow : Window
         var wa = SystemParameters.WorkArea;            // DIP 기준 작업영역
         Left = wa.Right - Width - 40;                   // 오른쪽 가장자리에서 40 안쪽
 
-        // 세로 가운데에서 화면 높이의 조금만 아래로...
-        double top = wa.Top + (wa.Height - Height) / 2 + wa.Height * 0.03;
+        // 세로 가운데보다 화면 높이의 4%만큼 위로.
+        double top = wa.Top + (wa.Height - Height) / 2 - wa.Height * 0.04;
         double maxTop = wa.Bottom - Height - 20;
         Top = Math.Min(top, maxTop);
     }
