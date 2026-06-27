@@ -13,6 +13,9 @@ public sealed class AppSettings
     public string? NotionToken { get; set; }
     public string? NotionParentPageId { get; set; }
 
+    /// <summary>화면 스니퍼 전역 단축키(예: "Ctrl+Alt+S"). 비거나 파싱 실패 시 기본값 사용.</summary>
+    public string? SnipHotkey { get; set; }
+
     public static string SettingsPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KongDaeri", "settings.json");

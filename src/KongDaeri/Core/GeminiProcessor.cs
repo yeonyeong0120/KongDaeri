@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -27,8 +28,55 @@ public sealed class GeminiProcessor : IAiProcessor
 
     public async Task<CaptureItem> ProcessAsync(CaptureItem item)
     {
-        var input = item.RawText ?? string.Empty;
+        // 입력 분기: 이미지(스니핑) 항목이면 비전, 아니면 텍스트.
+        object[] parts = !string.IsNullOrEmpty(item.ImagePath)
+            ? BuildImageParts(item.ImagePath!)
+            : BuildTextParts(item.RawText ?? string.Empty);
 
+        var requestBody = new
+        {
+            contents = new[]
+            {
+                new { parts }
+            },
+            generationConfig = new
+            {
+                responseMimeType = "application/json"
+            }
+        };
+
+        // 일시 장애(503 등)는 지수 백오프로 재시도. 매 시도마다 새 요청 생성.
+        using var response = await RetryPolicy.SendWithRetryAsync(_http, () =>
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            // 키는 헤더로 전달(URL 로깅 노출 방지).
+            request.Headers.Add("x-goog-api-key", _apiKey);
+            return request;
+        }, log: AppLog.Line);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            // 본문에 키가 들어갈 일은 없지만, 상태코드만 노출.
+            throw new HttpRequestException(
+                $"Gemini 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}");
+        }
+
+        var payload = await response.Content.ReadAsStringAsync();
+        var (title, tags, markdown) = ParseResponse(payload);
+
+        item.AiTitle = title;
+        item.AiTags = tags;
+        item.AiMarkdown = markdown;
+        item.Status = CaptureStatus.Processed;
+        return item;
+    }
+
+    // 텍스트 항목용 파트.
+    private static object[] BuildTextParts(string input)
+    {
         var prompt = $$"""
             너는 사용자가 수집한 정보를 노션에 아카이빙하기 좋게 정리하는 비서야.
             아래 [수집 내용]을 읽고 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
@@ -45,41 +93,38 @@ public sealed class GeminiProcessor : IAiProcessor
             {{input}}
             """;
 
-        var requestBody = new
-        {
-            contents = new[]
-            {
-                new { parts = new[] { new { text = prompt } } }
-            },
-            generationConfig = new
-            {
-                responseMimeType = "application/json"
-            }
-        };
+        return new object[] { new { text = prompt } };
+    }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+    // 스니핑 이미지용 파트: 프롬프트 + base64 inline_data(image/png).
+    private static object[] BuildImageParts(string imagePath)
+    {
+        if (!File.Exists(imagePath))
         {
-            Content = JsonContent.Create(requestBody)
-        };
-        // 키는 헤더로 전달(URL 로깅 노출 방지).
-        request.Headers.Add("x-goog-api-key", _apiKey);
-
-        using var response = await _http.SendAsync(request);
-        if (!response.IsSuccessStatusCode)
-        {
-            // 본문에 키가 들어갈 일은 없지만, 상태코드만 노출.
-            throw new HttpRequestException(
-                $"Gemini 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}");
+            throw new FileNotFoundException($"스니핑 이미지 파일을 찾을 수 없습니다: {imagePath}");
         }
 
-        var payload = await response.Content.ReadAsStringAsync();
-        var (title, tags, markdown) = ParseResponse(payload);
+        var bytes = File.ReadAllBytes(imagePath);
+        var base64 = Convert.ToBase64String(bytes);
 
-        item.AiTitle = title;
-        item.AiTags = tags;
-        item.AiMarkdown = markdown;
-        item.Status = CaptureStatus.Processed;
-        return item;
+        var prompt = """
+            너는 사용자가 캡처한 화면 이미지를 노션에 아카이빙하기 좋게 정리하는 비서야.
+            첨부된 이미지에서 텍스트·표·핵심 정보를 추출해 다음을 JSON 으로만 응답해. 다른 말은 절대 붙이지 마.
+
+            - title: 이미지 내용을 한눈에 알 수 있는 짧은 한국어 제목 (한 줄)
+            - tags: 주제를 나타내는 태그 3~5개 (한국어, 배열)
+            - markdown: 노션 페이지 본문으로 쓸 마크다운. 반드시 맨 위 첫 줄에 "# 제목"(h1)을
+              포함하고, 이미지의 텍스트는 그대로 옮기되 표가 있으면 마크다운 표로 재현하고 핵심은 요약해.
+
+            응답 JSON 스키마:
+            {"title": "string", "tags": ["string"], "markdown": "string"}
+            """;
+
+        return new object[]
+        {
+            new { text = prompt },
+            new { inline_data = new { mime_type = "image/png", data = base64 } },
+        };
     }
 
     /// <summary>

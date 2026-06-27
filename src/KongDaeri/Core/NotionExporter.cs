@@ -45,14 +45,17 @@ public sealed class NotionExporter : IExporter
             markdown = item.AiMarkdown
         };
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+        // 일시 장애(429/5xx)는 재시도. 401/404 등 영구 오류는 RetryPolicy 가 즉시 반환.
+        using var response = await RetryPolicy.SendWithRetryAsync(_http, () =>
         {
-            Content = JsonContent.Create(body)
-        };
-        request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {_token}");
-        request.Headers.TryAddWithoutValidation("Notion-Version", NotionVersion);
-
-        using var response = await _http.SendAsync(request);
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+            {
+                Content = JsonContent.Create(body)
+            };
+            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {_token}");
+            request.Headers.TryAddWithoutValidation("Notion-Version", NotionVersion);
+            return request;
+        }, log: AppLog.Line);
 
         if (!response.IsSuccessStatusCode)
         {

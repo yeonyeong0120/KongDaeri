@@ -1,0 +1,35 @@
+<Window x:Class="KongDaeri.SnipOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="콩대리 스니핑"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        Cursor="Cross"
+        Focusable="True">
+    <Grid x:Name="Root" Background="#01000000">
+        <!-- Background 가 거의 투명(#01)이어야 전체 영역이 히트테스트됨. 어둡게는 Mask 가 담당 -->
+
+        <!-- 어두운 막: EvenOdd 로 선택 영역만 구멍 -->
+        <Path x:Name="Mask" Fill="#73000000"/>
+
+        <!-- 선택 테두리 + 크기 라벨 (Canvas 절대배치) -->
+        <Canvas x:Name="Overlay">
+            <Rectangle x:Name="SelBorder" Visibility="Collapsed"
+                       Stroke="#FF3DA9FC" StrokeThickness="1.5"/>
+            <Border x:Name="SizeBox" Visibility="Collapsed"
+                    Background="#CC202020" CornerRadius="3" Padding="6,2">
+                <TextBlock x:Name="SizeText" Foreground="White" FontSize="12"/>
+            </Border>
+        </Canvas>
+
+        <!-- 안내 -->
+        <TextBlock Text="드래그로 영역 선택 · ESC 취소"
+                   Foreground="#CCFFFFFF" FontSize="14"
+                   HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,16,0,0"
+                   IsHitTestVisible="False"/>
+    </Grid>
+</Window>

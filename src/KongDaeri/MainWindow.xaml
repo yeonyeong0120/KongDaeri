@@ -11,29 +11,35 @@
         Background="Transparent"
         Topmost="True"
         ShowInTaskbar="False"
-        SizeToContent="WidthAndHeight"
-        MouseLeftButtonDown="OnMouseLeftButtonDown">
+        WindowStartupLocation="Manual"
+        Width="240" Height="184"
+        MouseLeftButtonDown="OnMouseLeftButtonDown"
+        MouseMove="OnMouseMove">
+    <!-- 고정 크기 창. 펫과 말풍선을 같은 셀에 다른 앵커로 겹쳐 배치 →
+         말풍선이 떴다 사라져도 펫의 위치/크기는 1px도 변하지 않는다. -->
     <Grid>
-        <StackPanel>
-            <!-- 말풍선: 평소 숨김, 수집 시 잠깐 표시 -->
-            <Border x:Name="Bubble"
-                    Visibility="Collapsed"
-                    Background="#FFFDF6E3"
-                    BorderBrush="#FFAAAAAA"
-                    BorderThickness="1"
-                    CornerRadius="10"
-                    Padding="10,6"
-                    Margin="0,0,0,4"
-                    HorizontalAlignment="Center">
-                <TextBlock x:Name="BubbleText"
-                           Text=""
-                           FontSize="14"
-                           Foreground="#FF333333"/>
-            </Border>
+        <!-- 펫: 하단 중앙 고정 -->
+        <Image Source="Assets/kongdr_clean_transparent.png"
+               Width="120" Stretch="Uniform"
+               VerticalAlignment="Bottom" HorizontalAlignment="Center"
+               Margin="0,0,0,8"/>
 
-            <Image Source="Assets/kongdr_clean_transparent.png"
-                   Width="120"
-                   Stretch="Uniform"/>
-        </StackPanel>
+        <!-- 말풍선: 상단 중앙, 레이아웃 흐름과 무관하게 펫 위에 겹쳐 표시 -->
+        <Border x:Name="Bubble"
+                Visibility="Collapsed"
+                VerticalAlignment="Top" HorizontalAlignment="Center"
+                Margin="0,4,0,0" MaxWidth="228"
+                Background="#FFFDF6E3"
+                BorderBrush="#FFAAAAAA"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="10,6">
+            <TextBlock x:Name="BubbleText"
+                       Text=""
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       FontSize="14"
+                       Foreground="#FF333333"/>
+        </Border>
     </Grid>
 </Window>
