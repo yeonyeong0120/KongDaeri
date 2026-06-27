@@ -14,7 +14,8 @@
         WindowStartupLocation="Manual"
         Width="240" Height="184"
         MouseLeftButtonDown="OnMouseLeftButtonDown"
-        MouseMove="OnMouseMove">
+        MouseMove="OnMouseMove"
+        MouseRightButtonUp="OnMouseRightButtonUp">
     <!-- 고정 크기 창. 펫과 말풍선을 같은 셀에 다른 앵커로 겹쳐 배치 →
          말풍선이 떴다 사라져도 펫의 위치/크기는 1px도 변하지 않는다. -->
     <Grid>

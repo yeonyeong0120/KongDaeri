@@ -5,6 +5,7 @@
         Title="콩대리 설정"
         Icon="Assets/kongdr_glasses_icon.ico"
         Width="520" SizeToContent="Height"
+        FontFamily="{StaticResource AppFont}"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <Window.Resources>
@@ -58,6 +59,19 @@
         <!-- 안내 -->
         <TextBlock Text="키/토큰을 비워두고 저장하면 기존 값이 유지됩니다."
                    FontSize="11" Foreground="#FF999999" TextWrapping="Wrap" Margin="0,14,0,0"/>
+
+        <!-- 위험 영역 -->
+        <Border BorderBrush="#FFE0B4B4" BorderThickness="1" CornerRadius="6"
+                Padding="10" Margin="0,16,0,0">
+            <StackPanel>
+                <TextBlock Text="위험 구역" FontWeight="SemiBold" Foreground="#FFC62828"/>
+                <TextBlock Text="수집함의 모든 항목과 스니핑 이미지를 영구 삭제합니다. (설정/키는 유지)"
+                           FontSize="11" Foreground="#FF777777" TextWrapping="Wrap" Margin="0,2,0,8"/>
+                <Button Content="모든 수집 데이터 삭제" HorizontalAlignment="Left"
+                        Padding="12,6" Foreground="White" Background="#FFC62828"
+                        BorderBrush="#FFB71C1C" Click="OnClearAll"/>
+            </StackPanel>
+        </Border>
 
         <!-- 버튼 -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">

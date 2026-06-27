@@ -15,6 +15,7 @@ namespace KongDaeri;
 public partial class App : System.Windows.Application
 {
     private WinForms.NotifyIcon? _trayIcon;
+    private WinForms.ContextMenuStrip? _trayMenu;
     private WinForms.ToolStripMenuItem? _countMenuItem;
     private WinForms.ToolStripMenuItem? _pauseMenuItem;
     private MainWindow? _petWindow;
@@ -35,6 +36,7 @@ public partial class App : System.Windows.Application
         // 데스펫 오버레이 창.
         _petWindow = new MainWindow();
         _petWindow.RequestOpenCollection += (_, _) => OpenCollectionWindow();
+        _petWindow.RequestContextMenu += (_, _) => _trayMenu?.Show(WinForms.Cursor.Position);
         _petWindow.Show();
 
         // 설정 로드 → AI/노션 구성(키 없거나 실패해도 앱은 계속 동작).
@@ -135,7 +137,13 @@ public partial class App : System.Windows.Application
     // ===== 설정 창 =====
     private void OpenSettingsWindow()
     {
-        var w = new SettingsWindow();
+        var w = new SettingsWindow
+        {
+            ClearAllDataRequested = async () =>
+            {
+                if (_service is not null) await _service.ClearAllAsync();
+            },
+        };
         if (_collectionWindow is not null) w.Owner = _collectionWindow;
         if (w.ShowDialog() == true)
         {
@@ -182,6 +190,7 @@ public partial class App : System.Windows.Application
     private void InitTrayIcon()
     {
         var menu = new WinForms.ContextMenuStrip();
+        _trayMenu = menu;
 
         _countMenuItem = new WinForms.ToolStripMenuItem("수집 개수: -") { Enabled = false };
         menu.Items.Add(_countMenuItem);
@@ -288,12 +297,17 @@ public partial class App : System.Windows.Application
         _petWindow.Activate();
     }
 
-    // 말풍선을 UI 스레드에서 안전하게 표시.
+    // 말풍선을 UI 스레드에서 안전하게 표시 + 상태에 맞는 표정.
     private void ShowBubble(string message)
     {
         var w = _petWindow;
         if (w is null) return;
-        w.Dispatcher.Invoke(() => w.ShowBubble(message));
+        w.Dispatcher.Invoke(() =>
+        {
+            w.ShowBubble(message);
+            if (message.Contains("실패")) w.ShowSad();
+            else if (message.Contains("정리 끝")) w.ShowHappy();
+        });
     }
 
     private void ExitApp()

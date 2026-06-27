@@ -16,6 +16,9 @@ public partial class SettingsWindow : Window
     private readonly SettingsViewModel _vm = new();
     private bool _syncing;
 
+    /// <summary>모든 데이터 삭제 요청(App 이 실제 삭제 수행). 설정은 건드리지 않음.</summary>
+    public Func<Task>? ClearAllDataRequested;
+
     public SettingsWindow()
     {
         InitializeComponent();
@@ -53,5 +56,20 @@ public partial class SettingsWindow : Window
     {
         DialogResult = false;
         Close();
+    }
+
+    private async void OnClearAll(object sender, RoutedEventArgs e)
+    {
+        var answer = MessageBox.Show(
+            "수집함의 모든 항목과 스니핑 이미지가 영구 삭제됩니다. 계속할까요?\n(설정/키는 유지됩니다)",
+            "모든 데이터 삭제", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+        if (answer != MessageBoxResult.OK) return;
+
+        if (ClearAllDataRequested is not null)
+        {
+            await ClearAllDataRequested.Invoke();
+        }
+        MessageBox.Show("모든 수집 데이터를 삭제했습니다.", "완료",
+            MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

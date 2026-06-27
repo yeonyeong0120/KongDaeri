@@ -33,6 +33,7 @@ public sealed class CaptureService
     public event EventHandler<CaptureItem>? ItemAdded;
     public event EventHandler<CaptureItem>? ItemUpdated;
     public event EventHandler<Guid>? ItemDeleted;
+    public event EventHandler? Cleared;                 // 전체 삭제 시
     public event EventHandler<string>? StatusMessage;   // 데스펫 말풍선용
 
     public Task<IReadOnlyList<CaptureItem>> ListAsync() => _storage.ListAsync();
@@ -121,6 +122,34 @@ public sealed class CaptureService
 
         ItemUpdated?.Invoke(this, item);
         StatusMessage?.Invoke(this, "노션에 올렸어요!");
+    }
+
+    /// <summary>모든 수집 항목 + 스니핑 이미지 삭제(설정은 건드리지 않음).</summary>
+    public async Task ClearAllAsync()
+    {
+        var items = await _storage.ListAsync();
+        foreach (var i in items)
+        {
+            await _storage.DeleteAsync(i.Id);
+        }
+
+        // snips 폴더의 PNG(썸네일 포함) 정리.
+        try
+        {
+            var snipDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "KongDaeri", "snips");
+            if (Directory.Exists(snipDir))
+            {
+                foreach (var f in Directory.GetFiles(snipDir, "*.png"))
+                {
+                    try { File.Delete(f); } catch { /* 개별 실패 무시 */ }
+                }
+            }
+        }
+        catch { /* 폴더 정리 실패 무시 */ }
+
+        Cleared?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>항목 삭제(이미지 항목이면 연결 PNG도 정리).</summary>

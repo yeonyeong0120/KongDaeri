@@ -2,6 +2,8 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace KongDaeri;
@@ -13,6 +15,17 @@ namespace KongDaeri;
 public partial class MainWindow : Window
 {
     private readonly DispatcherTimer _bubbleTimer;
+
+    // 표정
+    private readonly ImageSource _normalImg;
+    private readonly ImageSource _blinkImg;
+    private readonly ImageSource _sadImg;
+    private readonly ImageSource? _happyImg;     // 파일 없으면 null → 기본 유지
+    private readonly DispatcherTimer _blinkTimer = new();
+    private readonly DispatcherTimer _blinkRevertTimer = new() { Interval = TimeSpan.FromMilliseconds(120) };
+    private readonly DispatcherTimer _moodRevertTimer = new();
+    private readonly Random _rng = new();
+    private bool _moodActive;                     // sad/happy 표시 중 — 깜빡임 억제
 
     private static string PositionPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -28,6 +41,66 @@ public partial class MainWindow : Window
             _bubbleTimer.Stop();
             Bubble.Visibility = Visibility.Collapsed;
         };
+
+        // 표정 이미지 로드. (펫 위치/크기는 동일 Image 의 Source 만 교체하므로 불변)
+        _normalImg = LoadImage("kongdr_clean_transparent.png")!;
+        _blinkImg = LoadImage("kongdr_blink.png") ?? _normalImg;
+        _sadImg = LoadImage("kongdr_sad.png") ?? _normalImg;
+        _happyImg = LoadImage("kongdr_happy.png");   // 파일 없으면 null
+        PetImage.Source = _normalImg;
+
+        _blinkRevertTimer.Tick += (_, _) =>
+        {
+            _blinkRevertTimer.Stop();
+            if (!_moodActive) PetImage.Source = _normalImg;
+            ScheduleNextBlink();
+        };
+        _blinkTimer.Tick += (_, _) =>
+        {
+            _blinkTimer.Stop();
+            if (!_moodActive) { PetImage.Source = _blinkImg; _blinkRevertTimer.Start(); }
+            else ScheduleNextBlink();
+        };
+        ScheduleNextBlink();
+
+        _moodRevertTimer.Tick += (_, _) =>
+        {
+            _moodRevertTimer.Stop();
+            _moodActive = false;
+            PetImage.Source = _normalImg;
+        };
+    }
+
+    private static ImageSource? LoadImage(string fileName)
+    {
+        try
+        {
+            var uri = new Uri($"pack://application:,,,/Assets/{fileName}");
+            if (System.Windows.Application.GetResourceStream(uri) is null) return null;
+            return new BitmapImage(uri);
+        }
+        catch { return null; }
+    }
+
+    private void ScheduleNextBlink()
+    {
+        _blinkTimer.Interval = TimeSpan.FromMilliseconds(_rng.Next(3000, 6000));
+        _blinkTimer.Start();
+    }
+
+    /// <summary>실패 시 시무룩한 표정으로 잠시 전환 후 복귀.</summary>
+    public void ShowSad() => ShowMood(_sadImg);
+
+    /// <summary>성공 시 기쁜 표정(파일 있을 때만). 없으면 기본 유지.</summary>
+    public void ShowHappy() { if (_happyImg is not null) ShowMood(_happyImg); }
+
+    private void ShowMood(ImageSource img)
+    {
+        _moodActive = true;
+        PetImage.Source = img;
+        _moodRevertTimer.Stop();
+        _moodRevertTimer.Interval = TimeSpan.FromSeconds(1.8);
+        _moodRevertTimer.Start();
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -112,6 +185,14 @@ public partial class MainWindow : Window
 
     /// <summary>펫 더블클릭 → 수집함 열기 요청.</summary>
     public event EventHandler? RequestOpenCollection;
+
+    /// <summary>펫 우클릭 → 컨텍스트 메뉴 요청.</summary>
+    public event EventHandler? RequestContextMenu;
+
+    private void OnMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        RequestContextMenu?.Invoke(this, EventArgs.Empty);
+    }
 
     // 더블클릭 → 수집함 열기. (드래그는 MouseMove 에서 처리해 더블클릭과 충돌 안 나게)
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

@@ -5,6 +5,7 @@
         Title="콩대리 수집함"
         Icon="Assets/kongdr_glasses_icon.ico"
         Height="580" Width="940"
+        FontFamily="{StaticResource AppFont}"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
@@ -127,10 +128,11 @@
                             <!-- 이미지 원본 -->
                             <Image Source="{Binding SelectedItem.ImagePath}" Stretch="Uniform"
                                    Visibility="{Binding SelectedItem.HasImage, Converter={StaticResource BoolToVis}}"/>
-                            <!-- 텍스트 원본 -->
+                            <!-- 텍스트 원본 (Pretendard 적용 제외 — 기존 폰트 유지) -->
                             <TextBox Text="{Binding SelectedItem.RawText, Mode=OneWay}"
                                      IsReadOnly="True" TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Segoe UI, Malgun Gothic"
                                      BorderThickness="0" Background="Transparent"
                                      Visibility="{Binding SelectedItem.IsTextOriginal, Converter={StaticResource BoolToVis}}"/>
                         </Grid>

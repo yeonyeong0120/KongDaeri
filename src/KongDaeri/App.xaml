@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:KongDaeri"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-         
+        <!-- 앱 공통 폰트: Pretendard (Regular/Bold 동일 패밀리, weight 로 선택) -->
+        <FontFamily x:Key="AppFont">/KongDaeri;component/Assets/Fonts/#Pretendard</FontFamily>
     </Application.Resources>
 </Application>

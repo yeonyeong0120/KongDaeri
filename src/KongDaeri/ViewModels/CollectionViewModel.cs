@@ -32,6 +32,7 @@ public partial class CollectionViewModel : ObservableObject
         _service.ItemAdded += OnItemAdded;
         _service.ItemUpdated += OnItemUpdated;
         _service.ItemDeleted += OnItemDeleted;
+        _service.Cleared += (_, _) => OnUi(() => { Items.Clear(); SelectedItem = null; });
         _ = LoadAsync();
     }
 
