@@ -50,7 +50,11 @@ public partial class MainWindow : Window
 
         var wa = SystemParameters.WorkArea;            // DIP 기준 작업영역
         Left = wa.Right - Width - 40;                   // 오른쪽 가장자리에서 40 안쪽
-        Top = wa.Top + (wa.Height - Height) / 2;        // 세로 가운데
+
+        // 세로 가운데에서 화면 높이의 조금만 아래로...
+        double top = wa.Top + (wa.Height - Height) / 2 + wa.Height * 0.03;
+        double maxTop = wa.Bottom - Height - 20;
+        Top = Math.Min(top, maxTop);
     }
 
     private static (double Left, double Top)? LoadSavedPosition()
@@ -89,6 +93,12 @@ public partial class MainWindow : Window
     {
         public double Left { get; set; }
         public double Top { get; set; }
+    }
+
+    /// <summary>일시정지 중이면 펫을 흐리게(시각 피드백).</summary>
+    public void SetDimmed(bool dimmed)
+    {
+        PetImage.Opacity = dimmed ? 0.4 : 1.0;
     }
 
     /// <summary>말풍선을 1.5초간 표시한다(수집 반응 등).</summary>

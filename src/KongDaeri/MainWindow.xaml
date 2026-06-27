@@ -19,7 +19,8 @@
          말풍선이 떴다 사라져도 펫의 위치/크기는 1px도 변하지 않는다. -->
     <Grid>
         <!-- 펫: 하단 중앙 고정 -->
-        <Image Source="Assets/kongdr_clean_transparent.png"
+        <Image x:Name="PetImage"
+               Source="Assets/kongdr_clean_transparent.png"
                Width="120" Stretch="Uniform"
                VerticalAlignment="Bottom" HorizontalAlignment="Center"
                Margin="0,0,0,8"/>

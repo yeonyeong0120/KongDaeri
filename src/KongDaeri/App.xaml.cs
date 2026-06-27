@@ -16,6 +16,7 @@ public partial class App : System.Windows.Application
 {
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _countMenuItem;
+    private WinForms.ToolStripMenuItem? _pauseMenuItem;
     private MainWindow? _petWindow;
 
     private SqliteStorage? _storage;
@@ -136,6 +137,11 @@ public partial class App : System.Windows.Application
         menu.Items.Add(_countMenuItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("수집함 열기", null, (_, _) => OpenCollectionWindow());
+
+        _pauseMenuItem = new WinForms.ToolStripMenuItem("수집 일시정지") { CheckOnClick = true };
+        _pauseMenuItem.CheckedChanged += (_, _) => SetPaused(_pauseMenuItem.Checked);
+        menu.Items.Add(_pauseMenuItem);
+
         menu.Items.Add("콩대리 보이기/숨기기", null, (_, _) => TogglePetVisibility());
         menu.Items.Add("마지막 항목 노션 전송", null, (_, _) => _ = ExportLatestAsync());
         menu.Items.Add(new WinForms.ToolStripSeparator());
@@ -205,6 +211,15 @@ public partial class App : System.Windows.Application
             // 폴백.
         }
         return Drawing.SystemIcons.Application;
+    }
+
+    // 수집 일시정지/재개 — 클립보드 수집을 멈추고 펫을 흐리게.
+    private void SetPaused(bool paused)
+    {
+        if (_clipboardSource != null) _clipboardSource.Paused = paused;
+        _petWindow?.SetDimmed(paused);
+        ShowBubble(paused ? "수집 일시정지" : "수집 재개");
+        AppLog.Line($"[수집 {(paused ? "일시정지" : "재개")}]");
     }
 
     private void TogglePetVisibility()

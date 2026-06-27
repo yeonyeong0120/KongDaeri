@@ -36,6 +36,22 @@ public sealed class CaptureService
     /// </summary>
     public async Task HandleCapturedAsync(CaptureItem item)
     {
+        // 텍스트 수집 경로에만 민감정보 필터 적용(스니핑 이미지는 RawText 없음 → 통과).
+        if (!string.IsNullOrEmpty(item.RawText))
+        {
+            var filter = SensitiveDataFilter.Inspect(item.RawText);
+            if (filter.Blocked)
+            {
+                AppLog.Line($"[민감정보 차단] 유형={filter.BlockType}");   // 값은 절대 기록하지 않음
+                StatusMessage?.Invoke(this, "민감정보라 담지 않았어요");
+                return;   // 저장하지 않음(DB·로그에 원문 안 남김)
+            }
+            if (filter.MaskedText != item.RawText)
+            {
+                item = item with { RawText = filter.MaskedText };   // 마스킹본으로 교체
+            }
+        }
+
         await _storage.SaveAsync(item);
         var count = (await _storage.ListAsync()).Count;
         LogCapture(count, item);

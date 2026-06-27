@@ -28,6 +28,9 @@ public sealed class ClipboardSource : ICaptureSource
     public string Name => "클립보드 비서";
     public CaptureSourceType Type => CaptureSourceType.Clipboard;
 
+    /// <summary>일시정지 중이면 클립보드 변경을 무시(저장·AI 전부 안 함).</summary>
+    public bool Paused { get; set; }
+
     public event EventHandler<CaptureItem>? Captured;
 
     public void Start()
@@ -64,6 +67,12 @@ public sealed class ClipboardSource : ICaptureSource
 
     private void HandleClipboardUpdate()
     {
+        // 일시정지 중이면 아무것도 하지 않음(읽기·저장·AI 모두 스킵).
+        if (Paused)
+        {
+            return;
+        }
+
         // 텍스트만 처리.
         if (!Clipboard.ContainsText())
         {
