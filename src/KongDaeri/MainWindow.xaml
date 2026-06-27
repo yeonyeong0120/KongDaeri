@@ -1,17 +1,39 @@
-﻿<Window x:Class="KongDaeri.MainWindow"
+<Window x:Class="KongDaeri.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KongDaeri"
         mc:Ignorable="d"
-        Title="콩대리(KongDaeri)" Height="450" Width="800"
-        WindowStartupLocation="CenterScreen">
+        Title="콩대리(KongDaeri)"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        SizeToContent="WidthAndHeight"
+        MouseLeftButtonDown="OnMouseLeftButtonDown">
     <Grid>
-        <TextBlock Text="콩대리 준비됨"
-                   FontSize="32"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+        <StackPanel>
+            <!-- 말풍선: 평소 숨김, 수집 시 잠깐 표시 -->
+            <Border x:Name="Bubble"
+                    Visibility="Collapsed"
+                    Background="#FFFDF6E3"
+                    BorderBrush="#FFAAAAAA"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="10,6"
+                    Margin="0,0,0,4"
+                    HorizontalAlignment="Center">
+                <TextBlock x:Name="BubbleText"
+                           Text=""
+                           FontSize="14"
+                           Foreground="#FF333333"/>
+            </Border>
+
+            <Image Source="Assets/kongdr_clean_transparent.png"
+                   Width="120"
+                   Stretch="Uniform"/>
+        </StackPanel>
     </Grid>
 </Window>

@@ -290,6 +290,7 @@ Content-Type: application/json
 
 ### 9.4 시크릿 관리
 - 노션 토큰·Gemini 키는 평문 소스 노출 금지(환경변수/로컬 설정 + `.gitignore`).
+- 키 저장 방식은 로컬 `settings.json`(`%LOCALAPPDATA%\KongDaeri\`)으로, 추후 설정 창에서 사용자가 본인 키를 입력하면 같은 파일에 기록되는 구조. 배포 단계에서 DPAPI 암호화로 확장 가능.
 
 ---
 

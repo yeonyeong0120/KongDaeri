@@ -399,3 +399,13 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# KongDaeri local SQLite DB (수집함)
+*.db
+*.db-shm
+*.db-wal
+
+# KongDaeri 시크릿 (실제 키가 든 settings.json 커밋 금지; 실제 파일은 %LOCALAPPDATA%\KongDaeri\ 에 보관)
+/settings.json
+src/KongDaeri/settings.json
+# docs/settings.example.json 은 자리표시자라 커밋 허용(파일명이 달라 위 규칙에 안 걸림)
