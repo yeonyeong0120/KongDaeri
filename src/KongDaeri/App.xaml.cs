@@ -54,6 +54,7 @@ public partial class App : System.Windows.Application
         _storage = new SqliteStorage();
         _service = new CaptureService(_storage, ai, notion);
         _service.StatusMessage += (_, msg) => ShowBubble(msg);
+        _service.Error += (_, msg) => ShowFailureAlert(msg);
 
         // 클립보드 소스 → 서비스.
         _clipboardSource = new ClipboardSource(_petWindow);
@@ -243,15 +244,8 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        try
-        {
-            await _service.ExportAsync(target);
-        }
-        catch (Exception ex)
-        {
-            AppLog.Line($"[노션 전송 실패] {ex.GetType().Name}: {ex.Message}");
-            ShowBubble("앗, 실패했어요");
-        }
+        // 실패는 서비스가 분류된 alert·말풍선으로 처리.
+        await _service.ExportAsync(target);
     }
 
     /// <summary>전용 멀티사이즈 .ico 를 트레이 아이콘으로 직접 로드. 실패 시 시스템 기본.</summary>
@@ -300,17 +294,29 @@ public partial class App : System.Windows.Application
         _petWindow.Activate();
     }
 
-    // 말풍선을 UI 스레드에서 안전하게 표시 + 상태에 맞는 표정.
+    // 말풍선을 UI 스레드에서 안전하게 표시 + 상태에 맞는 표정. 실패는 약 2초 더 지속.
     private void ShowBubble(string message)
     {
         var w = _petWindow;
         if (w is null) return;
         w.Dispatcher.Invoke(() =>
         {
-            w.ShowBubble(message);
-            if (message.Contains("실패")) w.ShowSad();
+            bool fail = message.Contains("실패");
+            double seconds = fail ? 3.5 : 1.5;
+            w.ShowBubble(message, seconds);
+            if (fail) w.ShowSad(3.5);
             else if (message.Contains("끝!") || message.Contains("올렸어요")) w.ShowHappy();
         });
+    }
+
+    // 처리 실패 원인 alert(UI 스레드, 안전 문구만). 모달이어도 클립보드 수집은 계속.
+    private void ShowFailureAlert(string message)
+    {
+        var w = _petWindow;
+        if (w is null) return;
+        w.Dispatcher.Invoke(() =>
+            System.Windows.MessageBox.Show(message, "콩대리 - 처리 실패",
+                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning));
     }
 
     private void ExitApp()

@@ -88,18 +88,18 @@ public partial class MainWindow : Window
         _blinkTimer.Start();
     }
 
-    /// <summary>실패 시 시무룩한 표정으로 잠시 전환 후 복귀.</summary>
-    public void ShowSad() => ShowMood(_sadImg);
+    /// <summary>실패 시 시무룩한 표정으로 잠시 전환 후 복귀. (실패는 더 길게)</summary>
+    public void ShowSad(double seconds = 1.8) => ShowMood(_sadImg, seconds);
 
     /// <summary>성공 시 기쁜 표정(파일 있을 때만). 없으면 기본 유지.</summary>
-    public void ShowHappy() { if (_happyImg is not null) ShowMood(_happyImg); }
+    public void ShowHappy(double seconds = 1.8) { if (_happyImg is not null) ShowMood(_happyImg, seconds); }
 
-    private void ShowMood(ImageSource img)
+    private void ShowMood(ImageSource img, double seconds)
     {
         _moodActive = true;
         PetImage.Source = img;
         _moodRevertTimer.Stop();
-        _moodRevertTimer.Interval = TimeSpan.FromSeconds(1.8);
+        _moodRevertTimer.Interval = TimeSpan.FromSeconds(seconds);
         _moodRevertTimer.Start();
     }
 
@@ -174,12 +174,13 @@ public partial class MainWindow : Window
         PetImage.Opacity = dimmed ? 0.4 : 1.0;
     }
 
-    /// <summary>말풍선을 1.5초간 표시한다(수집 반응 등).</summary>
-    public void ShowBubble(string message)
+    /// <summary>말풍선을 지정 시간(기본 1.5초) 표시한다. 실패 등은 더 길게.</summary>
+    public void ShowBubble(string message, double seconds = 1.5)
     {
         BubbleText.Text = message;
         Bubble.Visibility = Visibility.Visible;
         _bubbleTimer.Stop();
+        _bubbleTimer.Interval = TimeSpan.FromSeconds(seconds);
         _bubbleTimer.Start();
     }
 

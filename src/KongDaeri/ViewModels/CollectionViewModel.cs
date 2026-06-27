@@ -109,15 +109,9 @@ public partial class CollectionViewModel : ObservableObject
         var sel = SelectedItem;
         if (sel is null) return;
 
-        try
-        {
-            await _service.ExportAsync(sel.Model);
-            sel.RaiseAllChanged();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "노션 전송", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+        // 실패는 서비스가 분류된 alert·말풍선으로 처리(원본 예외 메시지 노출 안 함).
+        await _service.ExportAsync(sel.Model);
+        sel.RaiseAllChanged();
     }
 
     [RelayCommand]

@@ -65,7 +65,8 @@ public sealed class NotionExporter : IExporter
                   "노션에서 부모 페이지의 '연결' 메뉴로 인티그레이션을 추가하세요."
                 : "";
             throw new HttpRequestException(
-                $"Notion 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}{hint}");
+                $"Notion 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}{hint}",
+                null, response.StatusCode);
         }
 
         var payload = await response.Content.ReadAsStringAsync();

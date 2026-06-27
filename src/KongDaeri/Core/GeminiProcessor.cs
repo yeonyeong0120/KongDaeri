@@ -63,7 +63,8 @@ public sealed class GeminiProcessor : IAiProcessor
         {
             // 본문에 키가 들어갈 일은 없지만, 상태코드만 노출.
             throw new HttpRequestException(
-                $"Gemini 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}");
+                $"Gemini 호출 실패: HTTP {(int)response.StatusCode} {response.StatusCode}",
+                null, response.StatusCode);
         }
 
         var payload = await response.Content.ReadAsStringAsync();
