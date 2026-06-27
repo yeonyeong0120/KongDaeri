@@ -154,7 +154,7 @@
                     </GroupBox>
 
                     <!-- AI 결과 -->
-                    <GroupBox Grid.Row="1" Header="AI 정리 결과">
+                    <GroupBox Grid.Row="1" Header="AI 정리 결과" Background="White">
                         <DockPanel>
                             <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4">
                                 <Run Text="태그: " FontWeight="SemiBold"/>

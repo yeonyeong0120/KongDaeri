@@ -15,6 +15,8 @@ public partial class SettingsWindow : Window
 {
     private readonly SettingsViewModel _vm = new();
     private bool _syncing;
+    private readonly System.Windows.Threading.DispatcherTimer _pageIdInfoTimer =
+        new() { Interval = TimeSpan.FromSeconds(10) };
 
     /// <summary>모든 데이터 삭제 요청(App 이 실제 삭제 수행). 설정은 건드리지 않음.</summary>
     public Func<Task>? ClearAllDataRequested;
@@ -29,6 +31,9 @@ public partial class SettingsWindow : Window
         GeminiTb.TextChanged += (_, _) => Sync(GeminiPw, GeminiTb, fromPw: false);
         NotionPw.PasswordChanged += (_, _) => Sync(NotionPw, NotionTb, fromPw: true);
         NotionTb.TextChanged += (_, _) => Sync(NotionPw, NotionTb, fromPw: false);
+
+        // 페이지 ID 안내 말풍선 10초 자동 닫기.
+        _pageIdInfoTimer.Tick += (_, _) => { _pageIdInfoTimer.Stop(); PageIdPopup.IsOpen = false; };
     }
 
     private void Sync(PasswordBox pw, TextBox tb, bool fromPw)
@@ -56,6 +61,42 @@ public partial class SettingsWindow : Window
     {
         DialogResult = false;
         Close();
+    }
+
+    private void OnNotionHelp(object sender, RoutedEventArgs e)
+    {
+        const string url = "https://www.notion.com/ko/help/create-integrations-with-the-notion-api";
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch { /* 브라우저 실행 실패는 무시 */ }
+    }
+
+    // Info 아이콘 클릭 → 말풍선 토글(다시 누르면 닫힘). 열면 10초 타이머 시작.
+    private void OnTogglePageIdInfo(object sender, RoutedEventArgs e)
+    {
+        if (PageIdPopup.IsOpen)
+        {
+            PageIdPopup.IsOpen = false;
+            _pageIdInfoTimer.Stop();
+        }
+        else
+        {
+            PageIdPopup.IsOpen = true;
+            _pageIdInfoTimer.Stop();
+            _pageIdInfoTimer.Start();
+        }
+    }
+
+    // 말풍선 클릭 → 즉시 닫기(타이머 취소).
+    private void OnDismissPageIdInfo(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        PageIdPopup.IsOpen = false;
+        _pageIdInfoTimer.Stop();
     }
 
     private async void OnClearAll(object sender, RoutedEventArgs e)

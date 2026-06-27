@@ -10,12 +10,32 @@
         ResizeMode="NoResize">
     <Window.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- 배경 없는 아이콘 버튼: 어떤 상태(hover/pressed)에서도 배경·테두리 없음 -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- Transparent 배경 Border 로 아이콘 사각형 전체를 히트 영역으로(빈 공간 포함).
+                             상태별 트리거 없음 → hover/pressed 에도 배경색 변화 없음. -->
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <StackPanel Margin="18">
 
         <!-- Gemini API 키 -->
-        <TextBlock Text="Gemini API 키" FontWeight="SemiBold"/>
+        <TextBlock Text="Gemini API 키" FontWeight="SemiBold" FontSize="14"/>
         <Grid Margin="0,4,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -30,8 +50,15 @@
         </Grid>
         <TextBlock Text="{Binding GeminiKeyStatus}" FontSize="11" Foreground="#FF777777" Margin="0,2,0,0"/>
 
-        <!-- Notion 토큰 -->
-        <TextBlock Text="Notion 토큰" FontWeight="SemiBold" Margin="0,14,0,0"/>
+        <!-- Notion 토큰 + 도움말 링크(Open in New) -->
+        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+            <TextBlock Text="Notion 토큰" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+            <Button Click="OnNotionHelp" Margin="6,0,0,0" Style="{StaticResource IconButton}"
+                    ToolTip="노션 안내 웹페이지로 이동합니다.">
+                <Path Width="13" Height="13" Stretch="Uniform" Fill="#FFF1792F"
+                      Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+            </Button>
+        </StackPanel>
         <Grid Margin="0,4,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -46,18 +73,35 @@
         </Grid>
         <TextBlock Text="{Binding NotionTokenStatus}" FontSize="11" Foreground="#FF777777" Margin="0,2,0,0"/>
 
-        <!-- Notion 페이지 ID (비밀 아님) -->
-        <TextBlock Text="Notion 페이지 ID" FontWeight="SemiBold" Margin="0,14,0,0"/>
+        <!-- Notion 페이지 ID + 설명(Info) 아이콘 (클릭 → 말풍선) -->
+        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+            <TextBlock Text="Notion 페이지 ID" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+            <Button x:Name="PageIdInfoBtn" Click="OnTogglePageIdInfo" Margin="6,0,0,0"
+                    Style="{StaticResource IconButton}" ToolTip="페이지 ID 설명 보기">
+                <Path Width="13" Height="13" Stretch="Uniform" Fill="#FFF1792F"
+                      Data="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            </Button>
+        </StackPanel>
         <TextBox Height="28" Margin="0,4,0,0" VerticalContentAlignment="Center"
                  Text="{Binding NotionPageIdInput, UpdateSourceTrigger=PropertyChanged}"/>
+        <!-- 안내 말풍선(평소 숨김). Info 클릭 시 표시, 다시 클릭/말풍선 클릭/10초 후 닫힘. 레이아웃 영향 없음(Popup). -->
+        <Popup x:Name="PageIdPopup" PlacementTarget="{Binding ElementName=PageIdInfoBtn}" Placement="Bottom"
+               AllowsTransparency="True" StaysOpen="True" HorizontalOffset="-4" VerticalOffset="2">
+            <Border Background="#FFFFF3E0" BorderBrush="#FFF1792F" BorderThickness="1" CornerRadius="6"
+                    Padding="10,8" MaxWidth="340" Cursor="Hand"
+                    MouseLeftButtonUp="OnDismissPageIdInfo">
+                <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#FF5D4037"
+                           Text="노션 페이지 주소(URL) 끝에 있는 32자리 영문·숫자예요. 콩대리가 이 페이지에 정리 내용을 올립니다."/>
+            </Border>
+        </Popup>
 
-        <!-- 스니퍼 단축키 -->
-        <TextBlock Text="스니퍼 단축키 (예: Ctrl+Alt+S)" FontWeight="SemiBold" Margin="0,14,0,0"/>
+        <!-- 캡처해서 수집하기 단축키 -->
+        <TextBlock Text="캡처해서 수집하기 단축키 (예: Ctrl+Alt+S)" FontWeight="SemiBold" FontSize="14" Margin="0,14,0,0"/>
         <TextBox Height="28" Margin="0,4,0,0" VerticalContentAlignment="Center"
                  Text="{Binding SnipHotkeyInput, UpdateSourceTrigger=PropertyChanged}"/>
 
         <!-- 번역 기본 언어 -->
-        <TextBlock Text="번역 기본 언어" FontWeight="SemiBold" Margin="0,14,0,0"/>
+        <TextBlock Text="번역 기본 언어" FontWeight="SemiBold" FontSize="14" Margin="0,14,0,0"/>
         <ComboBox Height="28" Margin="0,4,0,0" VerticalContentAlignment="Center"
                   ItemsSource="{Binding Languages}"
                   SelectedItem="{Binding TranslateLanguageInput, Mode=TwoWay}"/>
