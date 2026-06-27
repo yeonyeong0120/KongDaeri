@@ -10,8 +10,8 @@ namespace KongDaeri.Core;
 public sealed class CaptureService
 {
     private readonly IStorage _storage;
-    private readonly IAiProcessor? _ai;
-    private readonly NotionExporter? _notion;
+    private IAiProcessor? _ai;
+    private NotionExporter? _notion;
 
     public CaptureService(IStorage storage, IAiProcessor? ai, NotionExporter? notion)
     {
@@ -22,6 +22,13 @@ public sealed class CaptureService
 
     public bool AiEnabled => _ai is not null;
     public bool NotionEnabled => _notion is not null;
+
+    /// <summary>설정 변경 후 AI/노션 처리기를 교체(즉시 반영). 구독·저장소는 그대로 유지.</summary>
+    public void SetProcessors(IAiProcessor? ai, NotionExporter? notion)
+    {
+        _ai = ai;
+        _notion = notion;
+    }
 
     public event EventHandler<CaptureItem>? ItemAdded;
     public event EventHandler<CaptureItem>? ItemUpdated;

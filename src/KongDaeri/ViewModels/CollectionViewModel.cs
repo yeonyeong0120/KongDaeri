@@ -20,6 +20,12 @@ public partial class CollectionViewModel : ObservableObject
     [ObservableProperty]
     private CaptureItemViewModel? selectedItem;
 
+    /// <summary>설정 창 열기 요청(App 이 실제 창을 띄움).</summary>
+    public Action? OpenSettingsRequested;
+
+    [RelayCommand]
+    private void OpenSettings() => OpenSettingsRequested?.Invoke();
+
     public CollectionViewModel(CaptureService service)
     {
         _service = service;

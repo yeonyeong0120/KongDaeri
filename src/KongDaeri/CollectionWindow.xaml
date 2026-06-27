@@ -13,13 +13,22 @@
     </Window.Resources>
 
     <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="330"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- 상단 바: 설정 버튼 -->
+        <Button Grid.Row="0" Grid.Column="1" Content="설정" Width="70" Padding="0,4"
+                HorizontalAlignment="Right" Margin="0,0,0,6"
+                Command="{Binding OpenSettingsCommand}"/>
+
         <!-- ===== 왼쪽: 수집 항목 리스트 ===== -->
-        <ListView Grid.Column="0"
+        <ListView Grid.Row="1" Grid.Column="0"
                   ItemsSource="{Binding Items}"
                   SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -68,7 +77,7 @@
         </ListView>
 
         <!-- ===== 오른쪽: 상세 ===== -->
-        <Grid Grid.Column="1" Margin="12,0,0,0">
+        <Grid Grid.Row="1" Grid.Column="1" Margin="12,0,0,0">
 
             <!-- 선택 없음 안내 -->
             <TextBlock Text="왼쪽에서 항목을 선택하세요"

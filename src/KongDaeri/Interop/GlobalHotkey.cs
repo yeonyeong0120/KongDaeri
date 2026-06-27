@@ -72,12 +72,17 @@ public sealed class GlobalHotkey
     /// 키는 A~Z, 0~9, F1~F12 지원.
     /// </summary>
     public static (uint mods, uint vk, string desc) ParseOrDefault(string? text)
+        => TryParse(text, out var r) ? r : (NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, (uint)'S', "Ctrl+Alt+S");
+
+    /// <summary>
+    /// "Ctrl+Alt+S" 를 파싱. 유효(수정자 1개 이상 + 키)하면 true. 무효면 false(설정 검증용).
+    /// </summary>
+    public static bool TryParse(string? text, out (uint mods, uint vk, string desc) result)
     {
-        var def = (NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, (uint)'S', "Ctrl+Alt+S");
-        if (string.IsNullOrWhiteSpace(text)) return def;
+        result = default;
+        if (string.IsNullOrWhiteSpace(text)) return false;
 
         uint mods = 0;
-        uint vk = 0;
         var modNames = new List<string>();
         string? keyName = null;
 
@@ -98,13 +103,13 @@ public sealed class GlobalHotkey
             }
         }
 
-        if (mods == 0 || keyName is null || !TryParseKey(keyName, out vk, out var keyDisp))
+        if (mods == 0 || keyName is null || !TryParseKey(keyName, out var vk, out var keyDisp))
         {
-            return def;
+            return false;
         }
 
-        var desc = string.Join("+", modNames) + "+" + keyDisp;
-        return (mods, vk, desc);
+        result = (mods, vk, string.Join("+", modNames) + "+" + keyDisp);
+        return true;
     }
 
     private static bool TryParseKey(string key, out uint vk, out string display)

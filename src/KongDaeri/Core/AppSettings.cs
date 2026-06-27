@@ -37,6 +37,15 @@ public sealed class AppSettings
                ?? new AppSettings();
     }
 
+    /// <summary>현재 값을 settings.json 에 기록한다.</summary>
+    public void Save()
+    {
+        var dir = Path.GetDirectoryName(SettingsPath)!;
+        Directory.CreateDirectory(dir);
+        var json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(SettingsPath, json);
+    }
+
     /// <summary>
     /// Gemini 사용에 필요한 키가 있는지 검사. 없으면 어떤 키가 비었는지 안내하는
     /// 예외를 던진다(값 자체는 노출하지 않음).

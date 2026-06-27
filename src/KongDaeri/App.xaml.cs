@@ -114,7 +114,11 @@ public partial class App : System.Windows.Application
         if (_service is null) return;
 
         // 뷰모델은 앱 수명 동안 1개 유지(닫혀 있어도 실시간 갱신 유지).
-        _collectionViewModel ??= new CollectionViewModel(_service);
+        if (_collectionViewModel is null)
+        {
+            _collectionViewModel = new CollectionViewModel(_service);
+            _collectionViewModel.OpenSettingsRequested = OpenSettingsWindow;
+        }
 
         if (_collectionWindow is null)
         {
@@ -128,6 +132,52 @@ public partial class App : System.Windows.Application
         }
     }
 
+    // ===== 설정 창 =====
+    private void OpenSettingsWindow()
+    {
+        var w = new SettingsWindow();
+        if (_collectionWindow is not null) w.Owner = _collectionWindow;
+        if (w.ShowDialog() == true)
+        {
+            ReloadSettings();
+        }
+    }
+
+    // 저장된 설정으로 AI/노션 처리기 교체 + 단축키 재등록(즉시 반영).
+    private void ReloadSettings()
+    {
+        var settings = AppSettings.Load();
+
+        IAiProcessor? ai = null;
+        try { ai = new GeminiProcessor(settings); }
+        catch (Exception ex) { AppLog.Line($"[AI 비활성화] {ex.Message}"); }
+
+        NotionExporter? notion = null;
+        try { notion = new NotionExporter(settings); }
+        catch (Exception ex) { AppLog.Line($"[노션 비활성화] {ex.Message}"); }
+
+        _service?.SetProcessors(ai, notion);
+
+        // 단축키 재등록(이전 것 해제 후 새 값으로).
+        if (_petWindow is not null)
+        {
+            _snipHotkey?.Unregister();
+            _snipHotkey = new GlobalHotkey(_petWindow);
+            if (_snipHotkey.Register(settings.SnipHotkey))
+            {
+                _snipHotkey.Pressed += OnSnipHotkeyPressed;
+                AppLog.Line($"[스니퍼] 단축키 재등록: {_snipHotkey.Description}");
+            }
+            else
+            {
+                AppLog.Line($"[스니퍼] 단축키 재등록 실패({_snipHotkey.Description})");
+                _snipHotkey = null;
+            }
+        }
+
+        AppLog.Line("[설정] 다시 로드됨");
+    }
+
     // ===== 트레이 =====
     private void InitTrayIcon()
     {
@@ -137,6 +187,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add(_countMenuItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("수집함 열기", null, (_, _) => OpenCollectionWindow());
+        menu.Items.Add("설정", null, (_, _) => OpenSettingsWindow());
 
         _pauseMenuItem = new WinForms.ToolStripMenuItem("수집 일시정지") { CheckOnClick = true };
         _pauseMenuItem.CheckedChanged += (_, _) => SetPaused(_pauseMenuItem.Checked);
