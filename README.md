@@ -14,10 +14,9 @@
 
 ## 스크린샷
 
-<!-- 이미지는 docs/images/ 에 넣고 아래 주석을 해제해 연결하세요. -->
-<!-- ![데스펫 오버레이](docs/images/pet.png) -->
-<!-- ![수집함](docs/images/collection.png) -->
-<!-- ![설정 창](docs/images/settings.png) -->
+![데스펫 오버레이](docs/images/pet.png)
+![수집함](docs/images/collection.png)
+![설정 창](docs/images/settings.png)
 
 (스크린샷 추가 예정)
 
