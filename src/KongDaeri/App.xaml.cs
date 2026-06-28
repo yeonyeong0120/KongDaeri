@@ -102,7 +102,7 @@ public partial class App : System.Windows.Application
     {
         if (_service is null) return;
         await _service.HandleCapturedAsync(item);   // 저장 + "콩대리가 주워 담았어요"
-        ShowBubble("찰칵! 콩대리가 주워 담았어요");   // 스니핑 전용 문구로 덮어쓰기
+        ShowBubble("찰칵! 콩대리가 주워 담았어요!");   // 스니핑 전용 문구로 덮어쓰기
     }
 
     private async void OnCaptured(object? sender, CaptureItem item)

@@ -66,7 +66,7 @@ public sealed class CaptureService
         LogCapture(count, item);
 
         ItemAdded?.Invoke(this, item);
-        StatusMessage?.Invoke(this, "콩대리가 주워 담았어요");
+        StatusMessage?.Invoke(this, "콩대리가 주워 담았어요!");
     }
 
     /// <summary>AI 처리(정리/번역): Processing → (성공)Processed / (실패)Failed.</summary>
