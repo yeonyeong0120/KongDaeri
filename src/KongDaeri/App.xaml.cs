@@ -101,8 +101,8 @@ public partial class App : System.Windows.Application
     private async void OnSnipCaptured(object? sender, CaptureItem item)
     {
         if (_service is null) return;
-        await _service.HandleCapturedAsync(item);   // 저장 + "주워 담았어요"
-        ShowBubble("찰칵! 주워 담았어요");            // 스니핑 전용 문구로 덮어쓰기
+        await _service.HandleCapturedAsync(item);   // 저장 + "콩대리가 주워 담았어요"
+        ShowBubble("찰칵! 콩대리가 주워 담았어요");   // 스니핑 전용 문구로 덮어쓰기
     }
 
     private async void OnCaptured(object? sender, CaptureItem item)
@@ -305,7 +305,7 @@ public partial class App : System.Windows.Application
             double seconds = fail ? 3.5 : 1.5;
             w.ShowBubble(message, seconds);
             if (fail) w.ShowSad(3.5);
-            else if (message.Contains("끝!") || message.Contains("올렸어요")) w.ShowHappy();
+            else if (message.Contains("했어요!") || message.Contains("올렸어요")) w.ShowHappy();
         });
     }
 

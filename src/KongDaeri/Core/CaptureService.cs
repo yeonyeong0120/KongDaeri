@@ -66,7 +66,7 @@ public sealed class CaptureService
         LogCapture(count, item);
 
         ItemAdded?.Invoke(this, item);
-        StatusMessage?.Invoke(this, "주워 담았어요");
+        StatusMessage?.Invoke(this, "콩대리가 주워 담았어요");
     }
 
     /// <summary>AI 처리(정리/번역): Processing → (성공)Processed / (실패)Failed.</summary>
@@ -80,13 +80,13 @@ public sealed class CaptureService
             item.Status = CaptureStatus.Processing;
             await _storage.UpdateAsync(item);
             ItemUpdated?.Invoke(this, item);
-            StatusMessage?.Invoke(this, translate ? "번역 중…" : "정리 중…");
+            StatusMessage?.Invoke(this, translate ? "콩대리가 번역 중…" : "콩대리가 정리 중…");
 
             await _ai.ProcessAsync(item, task, language);
             await _storage.UpdateAsync(item);
             LogAiResult(item);
             ItemUpdated?.Invoke(this, item);
-            StatusMessage?.Invoke(this, translate ? "번역 끝!" : "정리 끝!");
+            StatusMessage?.Invoke(this, translate ? "콩대리가 번역했어요!" : "콩대리가 정리했어요!");
         }
         catch (Exception ex)
         {
@@ -131,7 +131,7 @@ public sealed class CaptureService
             AppLog.Line($"[노션 전송 완료] title=\"{item.AiTitle}\"  url={_notion.LastExportedUrl}");
 
             ItemUpdated?.Invoke(this, item);
-            StatusMessage?.Invoke(this, "노션에 올렸어요!");
+            StatusMessage?.Invoke(this, "콩대리가 노션에 올렸어요!");
         }
         catch (Exception ex)
         {
